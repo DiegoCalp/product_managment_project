@@ -167,7 +167,8 @@ function render() {
     rateHosting:        renderRateHosting,
     familyDashboard:    renderFamilyDashboard,
     familyViewRequest:  renderFamilyViewRequest,
-    matchConfirmed:     renderMatchConfirmed
+    matchConfirmed:     renderMatchConfirmed,
+    familyProfile:      renderFamilyProfile
   };
   app.innerHTML = (map[S.screen] || renderWelcome)();
   attachListeners();
@@ -221,7 +222,7 @@ function BottomNav(active) {
   const items = [
     { id: 'familyDashboard', icon: '🏠', label: 'דשבורד', badge: 1 },
     { id: 'browseFamilies',  icon: '🔍', label: 'חיפוש' },
-    { id: 'soldierProfile',  icon: '👨‍👩‍👧', label: 'הפרופיל שלנו' }
+    { id: 'familyProfile',   icon: '👨‍👩‍👧', label: 'הפרופיל שלנו' }
   ];
   return `<nav class="bottom-nav">${items.map(it => `
     <div class="nav-item ${active === it.id ? 'active' : ''}" data-nav="${it.id}">
@@ -800,8 +801,8 @@ function renderSoldierProfile() {
       <div class="profile-avatar-wrap">
         <div class="avatar-ring">${Avatar(s.initials, s.color, 'av-xl')}</div>
         <div style="display:flex;gap:8px;align-items:center">
-          ${s.verified ? `<span class="verified-badge">✓ מאומת</span>` : `<button class="btn btn-amber btn-sm">🔐 אמת פרופיל</button>`}
-          <button class="btn btn-secondary btn-sm">✏️ ערוך</button>
+          ${s.verified ? `<span class="verified-badge">✓ מאומת</span>` : `<button class="btn btn-amber btn-sm" data-action="uploadDoc">🔐 אמת פרופיל</button>`}
+          <button class="btn btn-secondary btn-sm" data-action="editProfile">✏️ ערוך</button>
         </div>
       </div>
       <div style="padding:8px 16px 16px">
@@ -843,7 +844,7 @@ function renderSoldierProfile() {
         <div style="font-size:12px;color:var(--warning);line-height:1.7">
           לאמת את זהותך כחייל בודד עולה חדש — ניתן להעלות: תעודת חייל, אישור ממש"קית ת"ש, או אישור מרכז קליטה
         </div>
-        <button class="btn btn-amber btn-sm btn-full" style="margin-top:10px">📎 העלה מסמך לאימות</button>
+        <button class="btn btn-amber btn-sm btn-full" style="margin-top:10px" data-action="uploadDoc">📎 העלה מסמך לאימות</button>
       </div>
 
       <div style="padding:16px">
@@ -965,6 +966,79 @@ function renderRateHosting() {
         <button class="btn btn-primary btn-full btn-lg" data-action="submitRating">⭐ שלח דירוג</button>
       </div>
     </div>
+  </div>`;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   SCREEN: FAMILY PROFILE
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+function renderFamilyProfile() {
+  const f = FAMILIES[0];
+  return `<div class="screen">
+    ${Header('הפרופיל שלנו')}
+    <div class="page">
+      <div class="profile-cover" style="background:${f.color}">
+        <div class="cover-pattern"></div>
+        <svg class="profile-cover-wave" viewBox="0 0 480 36" preserveAspectRatio="none" height="36">
+          <path d="M0,36 Q120,0 240,18 Q360,36 480,10 L480,36 Z" fill="#F1F5F9"/>
+        </svg>
+      </div>
+      <div class="profile-avatar-wrap">
+        <div class="avatar-ring">${Avatar(f.initials, f.color, 'av-xl')}</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          ${f.verified ? `<span class="verified-badge">✓ מאומת</span>` : ''}
+          <button class="btn btn-secondary btn-sm" data-action="editProfile">✏️ ערוך פרופיל</button>
+        </div>
+      </div>
+
+      <div style="padding:8px 16px 4px">
+        <div style="font-size:22px;font-weight:800">${f.name}</div>
+        <div style="font-size:14px;color:var(--text-3);margin-top:2px">${f.firstName}</div>
+        <div class="flex gap-8" style="margin-top:8px;flex-wrap:wrap">
+          <span class="badge b-green">📍 ${f.city}</span>
+          <span class="badge b-blue">⭐ ${f.rating} (${f.reviews} ביקורות)</span>
+          <span class="badge b-gray">מארחים מאז ${f.hosting_since}</span>
+        </div>
+      </div>
+
+      <div class="section-gap"></div>
+      <div class="info-section">
+        <div class="info-section-title">על המשפחה</div>
+        <p style="font-size:14px;color:var(--text-2);line-height:1.7">${f.description}</p>
+      </div>
+
+      <div class="section-gap"></div>
+      <div class="info-section">
+        <div class="info-section-title">פרטי האירוח</div>
+        <div class="info-row"><span class="info-icon">👨‍👩‍👧‍👦</span><span class="info-label">הרכב</span><span class="info-value">${f.members}</span></div>
+        <div class="info-row"><span class="info-icon">🗣️</span><span class="info-label">שפות</span><span class="info-value">${f.languages.join(', ')}</span></div>
+        <div class="info-row"><span class="info-icon">🕯️</span><span class="info-label">סגנון</span><span class="info-value">${f.hosting_style}</span></div>
+        <div class="info-row"><span class="info-icon">🥗</span><span class="info-label">תזונה</span><span class="info-value">${f.dietary.join(', ')}</span></div>
+        <div class="info-row"><span class="info-icon">📅</span><span class="info-label">זמינות</span><span class="info-value">${f.available.join(', ')}</span></div>
+        <div class="info-row"><span class="info-icon">📍</span><span class="info-label">עיר</span><span class="info-value">${f.city} · ${f.area}</span></div>
+      </div>
+
+      <div class="section-gap"></div>
+      <div class="info-section">
+        <div class="info-section-title">תחומי עניין</div>
+        <div class="badge-row">${f.interests.map(i => `<span class="badge b-teal">${i}</span>`).join('')}</div>
+      </div>
+
+      <div class="section-gap"></div>
+      <div style="margin:0 16px;padding:14px;background:var(--warning-light);border-radius:var(--r);border:1px solid #FDE68A">
+        <div style="font-size:13px;font-weight:700;color:var(--warning);margin-bottom:6px">🔐 אימות פרופיל משפחה</div>
+        <div style="font-size:12px;color:var(--warning);line-height:1.7">
+          כמשפחה מאומתת — חיילים רואים אתכם כאמינים ובטוחים יותר. ניתן לאמת עם תעודת זהות או פרטי קשר.
+        </div>
+        <button class="btn btn-amber btn-sm btn-full" style="margin-top:10px" data-action="uploadDoc">📎 העלה מסמך לאימות</button>
+      </div>
+
+      <div style="padding:16px">
+        <button class="btn btn-ghost btn-full" style="color:var(--danger);border:1px solid var(--border)" data-nav="welcome">יציאה מהחשבון</button>
+      </div>
+    </div>
+    ${BottomNav('familyProfile')}
   </div>`;
 }
 
@@ -1160,6 +1234,24 @@ function renderMatchConfirmed() {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════════
+   COMING SOON TOAST
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+function showComingSoon(featureName) {
+  const app = document.getElementById('app');
+  const existing = app.querySelector('.coming-soon-toast');
+  if (existing) existing.remove();
+
+  const toast = document.createElement('div');
+  toast.className = 'coming-soon-toast';
+  toast.innerHTML = `🚧 <strong>${featureName}</strong> — תמומש בגרסה הבאה`;
+  app.appendChild(toast);
+
+  setTimeout(() => { toast.classList.add('toast-hide'); setTimeout(() => toast.remove(), 400); }, 2800);
+  setTimeout(() => go(S.role === 'soldier' ? 'soldierHome' : 'familyDashboard'), 400);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
    EVENT LISTENERS
    ═══════════════════════════════════════════════════════════════════════════════ */
 
@@ -1323,22 +1415,24 @@ function attachListeners() {
     go('myRequests');
   });
 
-  /* --- Chat placeholder --- */
+  /* --- Chat (coming soon) --- */
   app.querySelectorAll('[data-action="chat"], [data-action="chatRequest"]').forEach(el => {
-    el.addEventListener('click', () => {
-      alert('💬 צ\'אט פנימי — מאפשר תיאום בלי חשיפת מספר טלפון!\n\n(בגרסה מלאה — ממשק צ\'אט בזמן אמת)');
-    });
+    el.addEventListener('click', () => showComingSoon('צ\'אט פנימי'));
   });
 
-  /* --- Feature 6: Report/Block --- */
+  /* --- Report/Block (coming soon) --- */
   app.querySelectorAll('[data-action="reportUser"]').forEach(el => {
-    el.addEventListener('click', () => {
-      const name = el.dataset.name || 'משתמש זה';
-      const choice = confirm(`🚩 דיווח על ${name}\n\nלחץ "אישור" לדיווח, "ביטול" לחסימה בלבד.`);
-      alert(choice
-        ? `✅ הדיווח על ${name} נשלח לצוות הפלטפורמה לבדיקה.`
-        : `🚫 ${name} נחסם. לא תקבל/י בקשות ממנו/ה יותר.`);
-    });
+    el.addEventListener('click', () => showComingSoon('דיווח וחסימת משתמש'));
+  });
+
+  /* --- Upload document (coming soon) --- */
+  app.querySelectorAll('[data-action="uploadDoc"]').forEach(el => {
+    el.addEventListener('click', () => showComingSoon('העלאת מסמך לאימות'));
+  });
+
+  /* --- Edit profile (coming soon) --- */
+  app.querySelectorAll('[data-action="editProfile"]').forEach(el => {
+    el.addEventListener('click', () => showComingSoon('עריכת פרופיל'));
   });
 
   /* --- Back button --- */
@@ -1372,6 +1466,15 @@ const extraCSS = `
   @keyframes heartPop { 0%{transform:scale(1)} 50%{transform:scale(1.4)} 100%{transform:scale(1)} }
   .error-border { border-color: var(--danger) !important; }
   .info-section-title { font-size: 12px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 10px; }
+  .coming-soon-toast {
+    position: fixed; bottom: calc(var(--nav-h) + 16px); left: 50%; transform: translateX(-50%);
+    background: #1E293B; color: white; padding: 13px 22px; border-radius: var(--r);
+    font-size: 14px; z-index: 9999; box-shadow: var(--shadow-lg);
+    max-width: calc(var(--max-w) - 32px); text-align: center;
+    animation: toastIn .25s ease-out; transition: opacity .4s;
+  }
+  .coming-soon-toast.toast-hide { opacity: 0; }
+  @keyframes toastIn { from { transform: translateX(-50%) translateY(16px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }
 `;
 
 const styleTag = document.createElement('style');
