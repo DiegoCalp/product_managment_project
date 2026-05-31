@@ -64,8 +64,11 @@ a { color: inherit; text-decoration: none; }
   background: var(--bg);
 }
 @media (min-width: 768px) {
-  body { background: #CBD5E1; }
-  #app { box-shadow: 0 0 60px rgba(0,0,0,.2); }
+  body { background: #E2E8F0; }
+  #app {
+    max-width: 1200px;
+    box-shadow: 0 0 0 1px rgba(0,0,0,.06), 0 8px 40px rgba(0,0,0,.12);
+  }
 }
 .screen { min-height: 100vh; display: flex; flex-direction: column; }
 .page { flex: 1; padding-bottom: calc(var(--nav-h) + 12px); }
@@ -469,3 +472,136 @@ textarea.form-control { resize: vertical; min-height: 90px; }
 .text-success { color: var(--success); }
 .text-danger { color: var(--danger); }
 .w-full { width: 100%; }
+
+/* ══ DESKTOP RESPONSIVE (≥ 768px) ═════════════════════════════════════════════ */
+@media (min-width: 768px) {
+
+  /* ── App frame ── */
+  #app { max-width: 1200px; }
+
+  /* ── Screens WITH bottom-nav → sidebar grid layout ── */
+  .screen:has(.bottom-nav) {
+    display: grid;
+    grid-template-areas:
+      "nav header"
+      "nav content";
+    grid-template-columns: 230px 1fr;
+    grid-template-rows: var(--header-h) 1fr;
+    min-height: 100vh;
+  }
+  .screen:has(.bottom-nav) > .header    { grid-area: header; }
+  .screen:has(.bottom-nav) > .page      { grid-area: content; padding-bottom: 32px; }
+  .screen:has(.bottom-nav) > .bottom-nav { grid-area: nav; }
+
+  /* ── Sidebar navigation ── */
+  .bottom-nav {
+    position: sticky !important;
+    top: 0 !important;
+    left: auto !important;
+    transform: none !important;
+    width: 230px;
+    max-width: 230px;
+    height: 100vh;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    gap: 2px;
+    padding: 20px 12px;
+    border-top: none;
+    border-left: 1px solid var(--border);
+    overflow-y: auto;
+    background: var(--surface);
+  }
+
+  .bottom-nav::before {
+    content: 'BeSeder | בסדר';
+    display: block;
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--primary);
+    padding: 8px 8px 20px;
+    border-bottom: 1px solid var(--border-light);
+    margin-bottom: 12px;
+    flex-shrink: 0;
+    letter-spacing: -.3px;
+  }
+
+  .nav-item {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 11px 14px;
+    border-radius: var(--r);
+    flex: 0;
+    width: 100%;
+    position: relative;
+  }
+  .nav-item:hover { background: var(--bg); }
+  .nav-item.active { background: var(--primary-light); }
+  .nav-label { font-size: 13px; color: var(--text-2); }
+  .nav-item.active .nav-label { color: var(--primary); font-weight: 600; }
+  .nav-icon { font-size: 20px; }
+
+  .nav-badge {
+    position: static;
+    border: none;
+    font-size: 11px;
+    min-width: 18px;
+    height: 18px;
+    margin-right: auto;
+  }
+
+  /* ── Sub-pages without nav → centered ── */
+  .screen:not(:has(.bottom-nav)):not(.welcome-screen) {
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  /* ── Welcome screen: hero left + role selection right ── */
+  .welcome-screen { flex-direction: row; min-height: 100vh; }
+
+  .welcome-hero {
+    width: 46%;
+    min-height: 100vh;
+    padding: 72px 48px;
+    flex-shrink: 0;
+    justify-content: center;
+  }
+  .welcome-hero::after { display: none; }
+
+  .welcome-bottom {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 56px 48px;
+    max-width: none;
+    overflow-y: auto;
+  }
+
+  /* ── Family cards grid ── */
+  .family-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr);
+    padding: 0 24px 24px;
+    gap: 16px;
+  }
+
+  /* ── Layout tweaks ── */
+  .cta-card { margin: 0 0 16px; }
+  .stats-row { max-width: 680px; }
+  .page-content { max-width: 720px; }
+  .greeting-banner { padding: 32px 28px 48px; }
+  .section-header { padding: 20px 24px 12px; }
+  .profile-cover { height: 160px; }
+  .info-section { padding: 16px 24px; }
+  .card { border-radius: var(--r-xl); }
+  .profile-avatar-wrap { padding: 0 24px 16px; }
+}
+
+/* ══ LARGE DESKTOP (≥ 1100px) ══════════════════════════════════════════════════ */
+@media (min-width: 1100px) {
+  .family-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+}
