@@ -541,26 +541,74 @@ function renderRequestForm() {
   </div>`;
 }
 
-/* PRD 5.4.2: All required form fields */
+/* PRD 5.4.2: All required form fields — two modes based on whether a family was pre-selected */
 function formStep1(f) {
   const meals = ['ארוחת שישי ערב', 'ארוחת שבת צהריים', 'ארוחת חג', 'אחר'];
-  const areas = ['תל אביב', 'ירושלים', 'חיפה', 'ראשון לציון', 'נתניה', 'פתח תקווה', 'גבעתיים', 'אחר'];
-  const distances = ['5 ק"מ', '10 ק"מ', '20 ק"מ', '30 ק"מ', '50 ק"מ', 'ללא הגבלה'];
   const sel = S.formData;
-  return `
+
+  const mealField = `
     <div class="form-group">
       <label class="form-label">סוג הארוחה המבוקשת <span style="color:var(--danger)">*</span></label>
       <div class="chip-group">
         ${meals.map(m => `<div class="chip ${sel.meal === m ? 'selected' : ''}" data-chip="meal" data-val="${m}">${m}</div>`).join('')}
       </div>
       ${S.formErrors.meal ? `<div style="color:var(--danger);font-size:12px;margin-top:4px">⚠️ ${S.formErrors.meal}</div>` : ''}
-    </div>
+    </div>`;
+
+  const dateField = `
     <div class="form-group">
       <label class="form-label">תאריך האירוח המבוקש <span style="color:var(--danger)">*</span></label>
       <input type="date" class="form-control ${S.formErrors.date ? 'error-border' : ''}" id="inp-date"
         value="${sel.date || ''}" min="${new Date().toISOString().split('T')[0]}">
       ${S.formErrors.date ? `<div style="color:var(--danger);font-size:12px;margin-top:4px">⚠️ ${S.formErrors.date}</div>` : ''}
-    </div>
+    </div>`;
+
+  if (f) {
+    /* ── Specific family: no area/distance — show family location + transport help ── */
+    const transportOpts = [
+      { val: 'self',    label: '🚗 אגיע עצמאית' },
+      { val: 'help',    label: '🙏 אשמח לעזרה בהגעה' },
+      { val: 'unknown', label: '🤷 עדיין לא יודע/ת' }
+    ];
+    return `
+      ${mealField}
+      ${dateField}
+      <div class="form-group">
+        <label class="form-label">מיקום האירוח</label>
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--bg);border-radius:var(--r);border:1.5px solid var(--border)">
+          ${Avatar(f.initials, f.color, 'av-sm')}
+          <div>
+            <div style="font-size:14px;font-weight:600;color:var(--text)">${f.name}</div>
+            <div style="font-size:12px;color:var(--text-3)">📍 ${f.city}, ${f.area} · ${f.distance} מביתך</div>
+          </div>
+          <span class="badge b-green" style="margin-right:auto">✓ מוגדר</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">האם תצטרך/י עזרה בהגעה? <span style="color:var(--danger)">*</span></label>
+        <div class="chip-group">
+          ${transportOpts.map(o => `<div class="chip ${sel.transport === o.val ? 'selected' : ''}" data-chip="transport" data-val="${o.val}">${o.label}</div>`).join('')}
+        </div>
+        ${S.formErrors.transport ? `<div style="color:var(--danger);font-size:12px;margin-top:4px">⚠️ ${S.formErrors.transport}</div>` : ''}
+      </div>
+      <div class="form-group">
+        <label class="form-label">שעת הגעה מועדפת (אופציונלי)</label>
+        <select class="form-control" id="inp-arrival">
+          <option value="">לא מוגדר</option>
+          ${['17:00','17:30','18:00','18:30','19:00','19:30','20:00'].map(t =>
+            `<option ${sel.arrival === t ? 'selected' : ''} value="${t}">${t}</option>`
+          ).join('')}
+        </select>
+      </div>
+      <button class="btn btn-primary btn-full btn-lg" data-action="formNext">המשך ›</button>`;
+  }
+
+  /* ── General request: include area + max distance ── */
+  const areas = ['תל אביב', 'ירושלים', 'חיפה', 'ראשון לציון', 'נתניה', 'פתח תקווה', 'גבעתיים', 'אחר'];
+  const distances = ['5 ק"מ', '10 ק"מ', '20 ק"מ', '30 ק"מ', '50 ק"מ', 'ללא הגבלה'];
+  return `
+    ${mealField}
+    ${dateField}
     <div class="form-group">
       <label class="form-label">עיר או אזור מועדפים <span style="color:var(--danger)">*</span></label>
       <div class="chip-group">
@@ -575,12 +623,12 @@ function formStep1(f) {
       </div>
     </div>
     <div class="form-group">
-      <label class="form-label">הגעה לארוחה</label>
+      <label class="form-label">האם תצטרך/י עזרה בהגעה?</label>
       <select class="form-control" id="inp-transport">
         <option value="">בחר...</option>
-        <option ${sel.transport === 'self'    ? 'selected' : ''} value="self">יכול/ה להגיע עצמאית</option>
-        <option ${sel.transport === 'help'    ? 'selected' : ''} value="help">אשמח לעזרה בהגעה</option>
-        <option ${sel.transport === 'unknown' ? 'selected' : ''} value="unknown">עדיין לא יודע/ת</option>
+        <option ${sel.transport === 'self'    ? 'selected' : ''} value="self">🚗 אגיע עצמאית</option>
+        <option ${sel.transport === 'help'    ? 'selected' : ''} value="help">🙏 אשמח לעזרה בהגעה</option>
+        <option ${sel.transport === 'unknown' ? 'selected' : ''} value="unknown">🤷 עדיין לא יודע/ת</option>
       </select>
     </div>
     <button class="btn btn-primary btn-full btn-lg" data-action="formNext">המשך ›</button>`;
@@ -638,12 +686,19 @@ function formStep3(f) {
         <div style="font-size:15px;font-weight:700;margin-bottom:14px;color:var(--text)">📋 סיכום הבקשה</div>
         <div class="info-row"><span class="info-icon">🍽️</span><span class="info-label">סוג ארוחה</span><span class="info-value">${sel.meal || '—'}</span></div>
         <div class="info-row"><span class="info-icon">📅</span><span class="info-label">תאריך</span><span class="info-value">${sel.date || '—'}</span></div>
+        ${f ? `
+        <div class="info-row"><span class="info-icon">👨‍👩‍👧</span><span class="info-label">משפחה</span><span class="info-value">${f.name}</span></div>
+        <div class="info-row"><span class="info-icon">📍</span><span class="info-label">מיקום</span><span class="info-value">${f.city} · ${f.distance}</span></div>
+        <div class="info-row"><span class="info-icon">🚗</span><span class="info-label">הגעה</span><span class="info-value">${({self:'אגיע עצמאית',help:'אשמח לעזרה',unknown:'עדיין לא יודע/ת'})[sel.transport] || '—'}</span></div>
+        ${sel.arrival ? `<div class="info-row"><span class="info-icon">🕐</span><span class="info-label">שעת הגעה</span><span class="info-value">${sel.arrival}</span></div>` : ''}
+        ` : `
         <div class="info-row"><span class="info-icon">📍</span><span class="info-label">אזור</span><span class="info-value">${sel.area || '—'}</span></div>
         <div class="info-row"><span class="info-icon">🚗</span><span class="info-label">מרחק מקס'</span><span class="info-value">${sel.maxDist || 'ללא הגבלה'}</span></div>
+        <div class="info-row"><span class="info-icon">🚗</span><span class="info-label">הגעה</span><span class="info-value">${({self:'אגיע עצמאית',help:'אשמח לעזרה',unknown:'עדיין לא יודע/ת'})[sel.transport] || '—'}</span></div>
+        `}
         <div class="info-row"><span class="info-icon">🗣️</span><span class="info-label">שפות</span><span class="info-value">${(sel.languages || []).join(', ') || '—'}</span></div>
         <div class="info-row"><span class="info-icon">🥗</span><span class="info-label">תזונה</span><span class="info-value">${(sel.dietary || []).join(', ') || 'ללא הגבלה'}</span></div>
         <div class="info-row"><span class="info-icon">🕯️</span><span class="info-label">סגנון</span><span class="info-value">${sel.style || '—'}</span></div>
-        ${f ? `<div class="info-row"><span class="info-icon">👨‍👩‍👧</span><span class="info-label">משפחה</span><span class="info-value">${f.name}</span></div>` : ''}
       </div>
     </div>
     <div class="form-group">
@@ -1321,7 +1376,7 @@ function attachListeners() {
         idx === -1 ? arr.push(val) : arr.splice(idx, 1);
         S.formData[key] = arr;
       } else {
-        const key = { meal: 'meal', area: 'area', style: 'style', maxDist: 'maxDist' }[type] || type;
+        const key = { meal: 'meal', area: 'area', style: 'style', maxDist: 'maxDist', transport: 'transport' }[type] || type;
         S.formData[key] = val;
       }
       el.classList.toggle('selected');
@@ -1336,12 +1391,18 @@ function attachListeners() {
     if (dateInp) S.formData.date = dateInp.value;
     if (transportInp) S.formData.transport = transportInp.value;
 
+    // Capture arrival time field (specific-family form)
+    const arrivalInp = document.getElementById('inp-arrival');
+    if (arrivalInp) S.formData.arrival = arrivalInp.value;
+
     S.formErrors = {};
-    // Step 1 validation
     if (S.formStep === 1) {
-      if (!S.formData.meal)  S.formErrors.meal = 'נא לבחור סוג ארוחה';
-      if (!S.formData.date)  S.formErrors.date = 'נא לבחור תאריך';
-      if (!S.formData.area)  S.formErrors.area = 'נא לבחור אזור';
+      if (!S.formData.meal) S.formErrors.meal = 'נא לבחור סוג ארוחה';
+      if (!S.formData.date) S.formErrors.date = 'נא לבחור תאריך';
+      // Area required only for general requests (no pre-selected family)
+      if (!S.selectedFamilyId && !S.formData.area) S.formErrors.area = 'נא לבחור אזור';
+      // Transport required for specific-family requests
+      if (S.selectedFamilyId && !S.formData.transport) S.formErrors.transport = 'נא לציין אם תצטרך/י עזרה בהגעה';
     }
     // Step 2 validation
     if (S.formStep === 2) {
